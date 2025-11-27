@@ -4,13 +4,19 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
+pymysql = "*"
 drf-yasg = "*"
 djoser = "*"
 django-cors-headers = "*"
 django-import-export = "*"
+psycopg2-binary = "*"
+pandas = "*"
+pillow = "*"
+gunicorn = "*"
+whitenoise = "*"
+dj-database-url = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.12"
+python_version = "3.11"

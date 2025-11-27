@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-6coijn81@g(h8zxpj+_(cg2el-85fyd44vcl%&&o!+j&n^*t19
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -82,11 +83,15 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'jwfbmnee_SchoolAp_db',
+            'USER': 'jwfbmnee_davidtship',
+            'PASSWORD': 'Cemic@2023',
+            'HOST': 'localhost',  # ✅ Correction ici
+            'PORT': '3306',
+        }
     }
-}
 
 
 # Password validation
@@ -157,8 +162,16 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': 'activate/{uid}/{token}',
     'SERIALIZERS': {
-        'user_create': 'accounts.serializers.UserCreateSerializer',
-        'user': 'accounts.serializers.UserSerializer',
-        'current_user': 'accounts.serializers.UserSerializer',
+        'user_create': 'User.serializers.UserCreateSerializer',
+        'user': 'User.serializers.UserSerializer',
+        'current_user': 'User.serializers.UserSerializer',
     },
 }
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # ou le port de ton dev server React
+    "http://127.0.0.1:5173",
+]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

@@ -1,13 +1,9 @@
 from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
 from rest_framework import serializers
-from .models import User, Role
+from .models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
-class RoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Role
-        fields = ('id', 'name')
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -15,32 +11,26 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'password', 'first_name', 'last_name', 'role')
+        fields = ('id', 'email', 'password', 'first_name', 'last_name')
 
     def create(self, validated_data):
 
-        role_id = validated_data.pop('role_id', None)
+
         password = validated_data.pop('password')
         # Création de l'utilisateur
         user = User(**validated_data)
         user.set_password(password)  # 🔹 Hash du mot de passe
-        if role_id:
-            try:
-                user.role = Role.objects.get(id=role_id)
-            except Role.DoesNotExist:
-                pass
+        
         user.save()
         return user
 class UserSerializer(serializers.ModelSerializer):
-    role = RoleSerializer(read_only=True)
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'role', 'is_active', 'is_staff')
+        fields = ('id', 'email', 'first_name', 'last_name', 'is_active', 'is_staff')
         read_only_fields = ('id', 'is_active', 'is_staff')
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
-    role = RoleSerializer(read_only=True)
     class Meta:
         model = User
         fields = ('id', 'email', 'first_name', 'last_name', 'role')
