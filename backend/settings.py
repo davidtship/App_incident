@@ -170,6 +170,7 @@ DJOSER = {
 }
 
 CORS_ALLOWED_ORIGINS = [
+    "https://app-incident-front.vercel.app",
     "http://localhost:5173",  # ou le port de ton dev server React
     "http://127.0.0.1:5173",
 ]
