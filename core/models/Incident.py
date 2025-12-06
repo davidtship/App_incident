@@ -3,12 +3,6 @@ from .School import School
 from .IncidentCategory import IncidentCategory
 from django.contrib.postgres.fields import ArrayField
 
-type_choice =[
-
-    ('F','Faible'),
-    ('M','Moyen'),
-    ('G','Grave')
-]
 
 class Incident(models.Model):
     school = models.ForeignKey(School, on_delete=models.CASCADE)
@@ -22,7 +16,7 @@ class Incident(models.Model):
     tel  = models.CharField(max_length=50)
     cat_incident = models.ForeignKey(IncidentCategory,  on_delete=models.CASCADE)
     place = models.CharField(max_length=50)
-    type = models.CharField(choices=type_choice, max_length=50)
+    type = models.CharField( max_length=50)
     date = models.DateField(auto_now=False, auto_now_add=True)
     date_incident = models.DateTimeField( auto_now=False, auto_now_add=False)
     narration  = models.TextField(blank=True,null=True)
