@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
-
+from rest_framework.pagination import PageNumberPagination
 from core.models import Incident
 from core.serializers import IncidentSerializer
 
@@ -13,7 +13,10 @@ class IncidentAPIView(APIView):
 
     def get(self, request):
         incidents = Incident.objects.all()
-        serializer = IncidentSerializer(incidents, many=True)
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        paginated_incidents = paginator.paginate_queryset(incidents, request)
+        serializer = IncidentSerializer(paginated_incidents, many=True)
         return Response(serializer.data)
 
     def post(self, request):
