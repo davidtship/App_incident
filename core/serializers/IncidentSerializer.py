@@ -4,15 +4,11 @@ from django.core.files.storage import default_storage
 
 class IncidentSerializer(serializers.ModelSerializer):
     actionTaken = serializers.ListField(child=serializers.CharField(), required=False)
-
-    # On accepte les fichiers envoyés pour l'upload
-    files = serializers.ListField(
-        child=serializers.FileField(),
+    uploaded_files = serializers.ListField(
+        child=serializers.FileField(max_length=None, allow_empty_file=False, use_url=False),
         write_only=True,
         required=False
     )
-
-    # On renvoie les URLs pour GET
     picture = serializers.SerializerMethodField()
     state = serializers.BooleanField()
 
@@ -21,34 +17,28 @@ class IncidentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_picture(self, obj):
+        request = self.context.get('request')
         if not obj.picture:
             return []
-        request = self.context.get('request')
         urls = []
         for pic in obj.picture:
-            if isinstance(pic, str):
-                clean_path = pic.replace('//media/', '/media/').lstrip('/')
-                url = default_storage.url(clean_path)
-                if request and not url.startswith('http'):
-                    url = request.build_absolute_uri(url)
-                urls.append(url)
+            url = pic
+            if request and not url.startswith('http'):
+                url = request.build_absolute_uri(url)
+            urls.append(url)
         return urls
 
     def create(self, validated_data):
-        files = validated_data.pop('files', [])
+        files = validated_data.pop('uploaded_files', [])
         actions = validated_data.pop('actionTaken', [])
 
         incident = Incident.objects.create(**validated_data)
 
         picture_urls = []
         for f in files:
-            filename = f'incident_{incident.id}_{f.name}'
-            default_storage.save(filename, f)
-            url = default_storage.url(filename)
-            request = self.context.get('request')
-            if request and not url.startswith('http'):
-                url = request.build_absolute_uri(url)
-            picture_urls.append(url)
+            f.name = f'incident_{incident.id}_{f.name}'
+            default_storage.save(f.name, f)
+            picture_urls.append(default_storage.url(f.name))
 
         incident.picture = picture_urls
         incident.actionTaken = actions
