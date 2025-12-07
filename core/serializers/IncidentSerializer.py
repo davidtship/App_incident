@@ -1,10 +1,19 @@
 from rest_framework import serializers
 from core.models import Incident
 from django.core.files.storage import default_storage
-from urllib.parse import quote
 
 class IncidentSerializer(serializers.ModelSerializer):
+    # Actions prises
     actionTaken = serializers.ListField(child=serializers.CharField(), required=False)
+    
+    # Champ pour upload de fichiers (write_only pour POST/PUT)
+    files = serializers.ListField(
+        child=serializers.FileField(max_length=None, allow_empty_file=False, use_url=True),
+        write_only=True,
+        required=False
+    )
+
+    # Champ pour GET : retourne les URLs absolues des médias
     picture = serializers.SerializerMethodField()
     state = serializers.BooleanField()
 
@@ -14,7 +23,7 @@ class IncidentSerializer(serializers.ModelSerializer):
 
     def get_picture(self, obj):
         """
-        Retourne des URLs absolues propres pour les images.
+        Retourne une liste d'URLs absolues pour tous les médias.
         """
         if not obj.picture:
             return []
@@ -24,14 +33,11 @@ class IncidentSerializer(serializers.ModelSerializer):
 
         for pic in obj.picture:
             if isinstance(pic, str):
-                # Nettoyer les doublons /media/ et encoder correctement les caractères spéciaux
+                # Nettoie les doublons /media/
                 clean_path = pic.replace('//media/', '/media/').lstrip('/')
-                clean_path = quote(clean_path, safe='/')  # encode correctement espaces et caractères spéciaux
-
-                # URL relative via default_storage
                 url = default_storage.url(clean_path)
 
-                # URL absolue si request est présent
+                # Transforme en URL absolue si request est disponible
                 if request and not url.startswith('http'):
                     url = request.build_absolute_uri(url)
 
@@ -40,19 +46,27 @@ class IncidentSerializer(serializers.ModelSerializer):
         return urls
 
     def create(self, validated_data):
-        pictures = validated_data.pop('picture', [])
+        """
+        Crée un incident et sauvegarde les fichiers médias,
+        en stockant des URLs correctes dans picture.
+        """
+        files = validated_data.pop('files', [])
         actions = validated_data.pop('actionTaken', [])
 
         incident = Incident.objects.create(**validated_data)
 
-        # Sauvegarde des fichiers et stockage uniquement du chemin relatif
-        picture_urls = []
-        for pic in pictures:
-            pic.name = f'incident_{incident.id}_{pic.name}'
-            default_storage.save(pic.name, pic)
-            picture_urls.append(f'{pic.name}')  # stocke juste le chemin relatif sans /media/ dupliqué
+        media_urls = []
+        for f in files:
+            filename = f'incident_{incident.id}_{f.name}'
+            default_storage.save(filename, f)
+            url = default_storage.url(filename)
+            request = self.context.get('request')
+            if request and not url.startswith('http'):
+                url = request.build_absolute_uri(url)
+            media_urls.append(url)
 
-        incident.picture = picture_urls
+        incident.picture = media_urls
         incident.actionTaken = actions
         incident.save()
+
         return incident
