@@ -2,7 +2,7 @@ from django.db import models
 from .School import School
 from .IncidentCategory import IncidentCategory
 from django.contrib.postgres.fields import ArrayField
-
+from .Action import Action
 
 class Incident(models.Model):
     school = models.ForeignKey(School, on_delete=models.CASCADE)
@@ -21,7 +21,7 @@ class Incident(models.Model):
     date_incident = models.DateTimeField( auto_now=False, auto_now_add=False)
     narration  = models.TextField(blank=True,null=True)
     picture = models.JSONField(default=list, blank=True,null=True)
-    actionTaken = models.JSONField(default=list, blank=True)
+    actions = models.ManyToManyField(Action, related_name="incidents") 
     state = models.BooleanField()
     
 

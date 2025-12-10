@@ -13,6 +13,7 @@ from core.views import (
     SchoolViewSet,
     SchoolCategoryViewSet,
     ImportDataViewSet,
+    ActionViewSet
 )
 
 # Crée un router pour les ViewSets
@@ -26,6 +27,7 @@ router.register(r'incident-types', TypeIncidentViewSet, basename='incident-types
 router.register(r'schools', SchoolViewSet, basename='school')
 router.register(r'school-categories', SchoolCategoryViewSet, basename='school-category')
 router.register(r'region', RegionViewSet, basename='region')
+router.register(r'actions', ActionViewSet, basename='action')
 router.register(r'import', ImportDataViewSet, basename='import')
 
 # URLs finales
